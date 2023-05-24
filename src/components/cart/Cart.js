@@ -1,45 +1,54 @@
-import React,{ useState } from "react";
-import { Button, Alert } from "react-bootstrap";
+import { useContext } from 'react';
 
+import Modal from '../UI/Modal';
+import CartItem from './CartItem';
+import classes from './Cart.module.css';
+import CartContext from '../../store/cart-context';
 
-const Cart = () => {
-  const [show, setShow] = useState(true);
+const Cart = (props) => {
+  const cartCtx = useContext(CartContext);
 
-  const cartElements = [
-    {
-    title: 'Colors',
-    price: 100,
-    imageUrl: 'https://prasadyash2411.github.io/ecom-website/img/Album%201.png',
-    quantity: 2,
-    },
-    {
-    title: 'Black and white Colors',
-    price: 50,
-    imageUrl: 'https://prasadyash2411.github.io/ecom-website/img/Album%202.png',
-    quantity: 3,
-    },
-    {
-    title: 'Yellow and Black Colors',
-    price: 70,
-    imageUrl: 'https://prasadyash2411.github.io/ecom-website/img/Album%203.png',
-    quantity: 1,
-    }
-    ]
-  return (
-    <>
-      <Alert show={show} variant="success">
-        <Alert.Heading>IN YOUR CART</Alert.Heading>
-      {cartElements}
-        <hr />
-        <div className="d-flex justify-content-end">
-          <Button onClick={() => setShow(false)} variant="outline-success">
-            Close me y'all!
-          </Button>
-        </div>
-      </Alert>
+  const totalAmount = `Rs.${cartCtx.totalAmount.toFixed(2)}`;
+  const hasItems = cartCtx.items.length > 0;
 
-      {!show && <Button onClick={() => setShow(true)}>Show Alert</Button>}
-    </>
+  const cartItemRemoveHandler = (id) => {
+    cartCtx.removeItem(id);
+  };
+
+  const cartItemAddHandler = (item) => {
+    cartCtx.addItem({ ...item, amount: 1 });
+  };
+
+  const cartItems = (
+    <ul className={classes['cart-items']}>
+      {cartCtx.items.map((item) => (
+        <CartItem
+          key={item.id}
+          name={item.name}
+          amount={item.amount}
+          price={item.price}
+          onRemove={cartItemRemoveHandler.bind(null, item.id)}
+          onAdd={cartItemAddHandler.bind(null, item)}
+        />
+      ))}
+    </ul>
   );
-}
+
+  return (
+    <Modal onClose={props.onClose}>
+      {cartItems}
+      <div className={classes.total}>
+        <span>Total Amount</span>
+        <span>{totalAmount}</span>
+      </div>
+      <div className={classes.actions}>
+        <button className={classes['button--alt']} onClick={props.onClose}>
+          Close
+        </button>
+        {hasItems && <button className={classes.button}>Order</button>}
+      </div>
+    </Modal>
+  );
+};
+
 export default Cart;
